@@ -5,8 +5,8 @@ mod lib;
 
 fn main() {
     let mut im = Messager::new(Path::new("./config.toml"));
-    im.bootstrap().unwrap();
-    im.save().unwrap();
+    drop(im.bootstrap());
+    drop(im.save());
 
     println!("{}: {}", im.core.get_name(), im.core.get_address());
 
