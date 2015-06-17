@@ -95,6 +95,22 @@ pub enum EventError {
 }
 
 impl<'e> Events<'e> for Messager<'e> {
+    fn on(&mut self, event: &'e str, foo: Box<Fn(&Messager, String)>) {
+        let mut l = self.events.entry(event).or_insert(Vec::new());
+        l.push(foo);
+    }
+    fn trigger(&mut self, event: &str, arguments: String) -> Result<(), EventError> {
+        match self.events.get(event) {
+            Some(l) => {
+                for foo in l {
+                    foo(self, arguments.clone());
+                };
+                Ok(())
+            },
+            None => Err(EventError::NotFoundEvent)
+        }
+    }
+
     fn eloop(&mut self) {
         loop {
             for ev in self.core.iter() {
@@ -117,21 +133,5 @@ impl<'e> Events<'e> for Messager<'e> {
 
             self.core.wait();
         };
-    }
-
-    fn on(&mut self, event: &'e str, foo: Box<Fn(&Messager, String)>) {
-        let mut l = self.events.entry(event).or_insert(Vec::new());
-        l.push(foo);
-    }
-    fn trigger(&mut self, event: &str, arguments: String) -> Result<(), EventError> {
-        match self.events.get(event) {
-            Some(l) => {
-                for foo in l {
-                    foo(self, arguments.clone());
-                };
-                Ok(())
-            },
-            None => Err(EventError::NotFoundEvent)
-        }
     }
 }
