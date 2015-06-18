@@ -1,3 +1,5 @@
+//! High-level API package is rstox
+
 extern crate rstox;
 extern crate toml;
 
@@ -9,33 +11,89 @@ use std::fs::File;
 use std::path::Path;
 use std::io::{Write, Read, Error};
 
-// pub struct Args {
-    // //
-// }
+/// Event arguments
+/// XXX use impl Clone for Arguments {}
+#[derive(Clone)]
+pub struct Arguments {
+    ///  Connection Status
+    pub status: Option<Connection>,
+    ///  Friend num
+    pub fnum: Option<u32>,
+    ///  Message String
+    pub message: Option<String>,
+    ///  Public Key
+    pub pk: Option<PublicKey>,
+    ///  Data
+    pub data: Option<Vec<u8>>,
+    ///  Group peer num
+    pub peer: Option<i32>,
+    ///  Group num
+    pub groupnum: Option<i32>,
+    ///  Friend Group num
+    pub fgnum: Option<i32>,
+    ///  Group change
+    pub change: Option<ChatChange>
+}
 
+impl Default for Arguments {
+    fn default() -> Self {
+        Arguments {
+            status: None,
+            fnum: None,
+            message: None,
+            pk: None,
+            data: None,
+            peer: None,
+            groupnum: None,
+            fgnum: None,
+            change: None
+        }
+    }
+}
+
+/// Tox Messager.
+///
+/// # Examples
+///
+/// ```
+/// use std::path::Path;
+/// use painting::Events;
+///
+/// let mut im = painting::Messager::new(Path::new("examples/config.toml"));
+/// im.bootstrap().ok().expect("Bootstrap failure.");
+/// im.save().err().and_then(|err| Some(println!("Save profile failure. {}", err)));
+///
+/// im.on("connection", Box::new(|tox, args| {
+///     println!("{} ConnectionStatus: {:?}", tox.core.get_name(), args.status);
+/// }));
+///
+/// //im.eloop();
+/// ```
 pub struct Messager<'e> {
     pub core: Tox,
     //av: ToxAV,
+    bootstrap: Table,
     config: Table,
-    owner: PublicKey,
-    events: HashMap<&'e str, Vec<Box<Fn(&Messager, String)>>>
+    pub owner: PublicKey,
+    events: HashMap<&'e str, Vec<Box<Fn(&Messager, Arguments)>>>
 }
 
 impl<'e> Messager<'e> {
-    pub fn new(path: &Path) -> Messager {
+    /// New a Messager
+    pub fn new(path: &Path) -> Self {
         // load toml config
         let mut data = String::new();
         File::open(path).unwrap().read_to_string(&mut data).unwrap();
         let xconfig = Parser::new(&data).parse().unwrap();
 
-        // load Tox Profile
+        // load Tox profile
         let mut xp: Vec<u8> = Vec::new();
         let xcore = match Tox::new(ToxOptions::new(), match File::open(Path::new(
                 xconfig.get("bot").unwrap().as_table().unwrap()
                     .get("profile").and_then(|x| x.as_str()).unwrap_or("./profile.tox")
             )) {
                 Ok(mut data) => {
-                    data.read_to_end(&mut xp).ok().expect("Open Profile Error.");
+                    data.read_to_end(&mut xp).ok().expect("Error while loading profile.");
                     Some(&xp)
                 },
                 Err(_) => None
@@ -47,59 +105,61 @@ impl<'e> Messager<'e> {
 
         Messager {
             core: xcore,
-            config: xconfig.clone(),
+            bootstrap: xconfig.get("bootstrap").unwrap().as_table().unwrap().clone(),
+            config: xconfig.get("bot").unwrap().as_table().unwrap().clone(),
             owner: xconfig.get("bot").unwrap().as_table().unwrap()
                 .get("owner").unwrap().as_str().unwrap().parse().unwrap(),
             events: HashMap::new()
         }
     }
 
+    /// Bootstrap Tox network
     pub fn bootstrap(&mut self) -> Result<(), errors::BootstrapError> {
         self.core.set_name(
-            self.config.get("bot").unwrap().as_table().unwrap()
-                .get("name").unwrap().as_str().unwrap()
+            self.config.get("name").expect("missing bot name.")
+                .as_str().unwrap()
         ).unwrap();
         self.core.set_status_message(
-            self.config.get("bot").unwrap().as_table().unwrap()
-                .get("status").and_then(|x| x.as_str()).unwrap_or("A4.")
+            self.config.get("status").and_then(|x| x.as_str()).unwrap_or("A4.")
         ).unwrap();
         self.core.bootstrap(
-            self.config.get("bootstrap").unwrap().as_table().unwrap()
-                .get("ip").unwrap().as_str().unwrap(),
-            self.config.get("bootstrap").unwrap().as_table().unwrap()
-                .get("port").unwrap().as_integer().unwrap() as u16,
-            self.config.get("bootstrap").unwrap().as_table().unwrap()
-                .get("key").unwrap().as_str().unwrap().parse().unwrap()
+            self.bootstrap.get("ip").and_then(|x| x.as_str()).unwrap_or("127.0.0.1"),
+            self.bootstrap.get("port").and_then(|x| x.as_integer()).unwrap_or(33445) as u16,
+            self.bootstrap.get("key").expect("missing bootstrapd key.")
+                .as_str().unwrap().parse().unwrap()
         )
     }
 
+    /// Save Tox profile
     pub fn save(&mut self) -> Result<(), Error> {
         let mut f = try!(File::create(Path::new(
-            self.config.get("bot").unwrap().as_table().unwrap()
-                .get("profile").and_then(|x| x.as_str()).unwrap_or("./profile.tox")
+            self.config.get("profile").and_then(|x| x.as_str()).unwrap_or("./profile.tox")
         )));
         try!(f.write(&self.core.save()));
         Ok(())
     }
 }
 
+/// Events loop
 pub trait Events<'e> {
+    fn on(&mut self, event: &'e str, f: Box<Fn(&Messager, Arguments)>);
+    fn trigger(&mut self, event: &str, arguments: Arguments) -> Result<(), EventError>;
     fn eloop(&mut self);
-    fn on(&mut self, event: &'e str, f: Box<Fn(&Messager, String)>);
-    fn trigger(&mut self, event: &str, arguments: String) -> Result<(), EventError>;
 }
 
 pub enum EventError {
-    None = 0,
     NotFoundEvent
 }
 
 impl<'e> Events<'e> for Messager<'e> {
-    fn on(&mut self, event: &'e str, foo: Box<Fn(&Messager, String)>) {
+    /// Register event
+    fn on(&mut self, event: &'e str, foo: Box<Fn(&Messager, Arguments)>) {
         let mut l = self.events.entry(event).or_insert(Vec::new());
         l.push(foo);
     }
-    fn trigger(&mut self, event: &str, arguments: String) -> Result<(), EventError> {
+
+    /// Trigger event
+    fn trigger(&mut self, event: &str, arguments: Arguments) -> Result<(), EventError> {
         match self.events.get(event) {
             Some(l) => {
                 for foo in l {
@@ -111,23 +171,84 @@ impl<'e> Events<'e> for Messager<'e> {
         }
     }
 
+    /// Start events loop
+    #[allow(unused_must_use)]
     fn eloop(&mut self) {
         loop {
             for ev in self.core.iter() {
+                println!("Event {:?}", ev);
                 match ev {
-                    FriendRequest(cid, _) => {
-                        self.core.add_friend_norequest(&cid).unwrap();
+                    ConnectionStatus(status) => {
+                        self.trigger("connection", Arguments {
+                            status: Some(status),
+                            ..Default::default()
+                        });
                     },
-                    GroupInvite(fid, kind, data) => {
-                        match kind {
-                            GroupchatType::Text => { self.core.join_groupchat(fid, &data).unwrap(); },
-                            _ => {},
-                        }
+                    FriendRequest(pk, message) => {
+                        self.trigger("friend.request", Arguments {
+                            pk: Some(pk),
+                            message: Some(message),
+                            ..Default::default()
+                        });
                     },
-                    GroupMessage(group, peer, msg) => if self.core.group_peername(group, peer).unwrap() != self.core.get_name() {
-                        self.core.group_message_send(group, &msg).unwrap();
+                    FriendMessage(fnum, kind, message) => {
+                        self.trigger(&format!("friend.{}", match kind {
+                            MessageType::Normal => "message",
+                            MessageType::Action => "action"
+                        }), Arguments {
+                            fnum: Some(fnum),
+                            message: Some(message),
+                            ..Default::default()
+                        });
                     },
-                    ev => println!("Tox event: {:?}", ev),
+                    LossyPackage(fnum, data) => {
+                        self.trigger("package.lossy", Arguments {
+                            fnum: Some(fnum),
+                            data: Some(data),
+                            ..Default::default()
+                        });
+                    },
+                    LosslessPackage(fnum, data) => {
+                        self.trigger("package.lossless", Arguments {
+                            fnum: Some(fnum),
+                            data: Some(data),
+                            ..Default::default()
+                        });
+                    },
+                    GroupInvite(peer, kind, data) => {
+                        self.trigger(&format!("group.invite.{}", match kind {
+                            GroupchatType::Text => "text",
+                            GroupchatType::Av => "av"
+                        }), Arguments {
+                            peer: Some(peer),
+                            data: Some(data),
+                            ..Default::default()
+                        });
+                    },
+                    GroupMessage(groupnum, peer, message) => {
+                        self.trigger("group.message", Arguments {
+                            groupnum: Some(groupnum),
+                            peer: Some(peer),
+                            message: Some(message),
+                            ..Default::default()
+                        });
+                    },
+                    GroupTitle(groupnum, peer, message) => {
+                        self.trigger("group.title", Arguments {
+                            groupnum: Some(groupnum),
+                            peer: Some(peer),
+                            message: Some(message),
+                            ..Default::default()
+                        });
+                    },
+                    GroupNamelistChange(groupnum, peer, change) => {
+                        self.trigger("group.change", Arguments {
+                            groupnum: Some(groupnum),
+                            peer: Some(peer),
+                            change: Some(change),
+                            ..Default::default()
+                        });
+                    },
                 }
             };
 
@@ -135,3 +256,7 @@ impl<'e> Events<'e> for Messager<'e> {
         };
     }
 }
+
+// pub trait Operate {
+    // fn send();
+// }

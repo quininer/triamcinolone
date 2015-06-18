@@ -1,9 +1,9 @@
 // use box syntax, but unstable feature
 // #![feature(box_syntax)]
 
-extern crate triamcinolone;
+extern crate painting;
 
-use triamcinolone::{Messager, Events};
+use painting::{Messager, Events, Arguments};
 use std::path::Path;
 
 #[test]
@@ -12,7 +12,7 @@ fn test_messager() {
     assert!(im.bootstrap().is_ok());
 
     assert_eq!(im.core.get_name(), "triam");
-    assert_eq!(im.save().is_ok(), true);
+    assert!(im.save().is_ok());
 }
 
 #[test]
@@ -20,14 +20,17 @@ fn test_event() {
     let mut im = Messager::new(Path::new("examples/config.toml"));
     im.bootstrap().ok().expect("bootstrap failure.");
 
-    im.on("test", Box::new(|tox, arguments| {
-        assert_eq!(arguments, "Hello world.".to_string());
+    im.on("test", Box::new(|tox, args| {
+        assert_eq!(args.message, Some("Hello world.".to_string()));
         assert_eq!(tox.core.get_name(), "triam");
     }));
 
-    assert!(im.trigger("test", "Hello world.".to_string()).is_ok());
-    assert!(match im.trigger("not", "Event".to_string()) {
-        Ok(_) => false,
-        Err(_) => true
-    });
+    assert!(im.trigger("test", Arguments {
+        message: Some("Hello world.".to_string()),
+        ..Default::default()
+    }).is_ok());
+    assert!(im.trigger("not", Arguments {
+        message: Some("Event binding.".to_string()),
+        ..Default::default()
+    }).is_err());
 }

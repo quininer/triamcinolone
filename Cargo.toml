@@ -3,6 +3,10 @@ name = "triamcinolone"
 version = "0.1.0"
 authors = ["quininer <quininer@live.com>"]
 
+[lib]
+name = "painting"
+path = "src/lib.rs"
+
 [dependencies.rstox]
 git = "https://github.com/suhr/rstox.git"
 branch = "new-api"
