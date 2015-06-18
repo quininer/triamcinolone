@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Tox` struct in crate `rstox`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Tox">
+
+    <title>rstox::core::Tox - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <section class="sidebar">
+        
+        <p class='location'><a href='../index.html'>rstox</a>::<wbr><a href='index.html'>core</a></p><script>window.sidebarCurrent = {name: 'Tox', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </section>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>rstox</a>::<wbr><a href='index.html'>core</a>::<wbr><a class='struct' href=''>Tox</a></span><span class='out-of-band'><span id='render-detail'>
+            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                [<span class='inner'>&#x2212;</span>]
+            </a>
+        </span><a id='src-11049' class='srclink' href='../../src/rstox/core/mod.rs.html#387-392' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Tox {
+    // some fields omitted
+}</pre><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../../rstox/core/struct.Tox.html' title='rstox::core::Tox'>Tox</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(opts: <a class='struct' href='../../rstox/core/struct.ToxOptions.html' title='rstox::core::ToxOptions'>ToxOptions</a>, data: <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a href='http://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='struct' href='../../rstox/core/struct.Tox.html' title='rstox::core::Tox'>Tox</a>, <a class='enum' href='../../rstox/core/errors/enum.InitError.html' title='rstox::core::errors::InitError'>InitError</a>&gt;</code></h4>
+<div class='docblock'><p>Create a new tox instance</p>
+</div><h4 id='method.iter' class='method'><code>fn <a href='#method.iter' class='fnname'>iter</a>(&amp;mut self) -&gt; <a class='struct' href='../../rstox/core/struct.ToxIter.html' title='rstox::core::ToxIter'>ToxIter</a></code></h4>
+<div class='docblock'><p>Ticks the Tox and returns an iterator to the Tox events</p>
+</div><h4 id='method.tick' class='method'><code>fn <a href='#method.tick' class='fnname'>tick</a>(&amp;mut self)</code></h4>
+<div class='docblock'><p>This function animates tox by calling <code>tox_do()</code> It function should be called
+at least several times per second. Use <code>wait()</code> method to get optimal delays</p>
+</div><h4 id='method.wait' class='method'><code>fn <a href='#method.wait' class='fnname'>wait</a>(&amp;self)</code></h4>
+<div class='docblock'><p>This function makes thread sleep for a some time, optimal for <code>tick()</code> method</p>
+</div><h4 id='method.bootstrap' class='method'><code>fn <a href='#method.bootstrap' class='fnname'>bootstrap</a>(&amp;mut self, host: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>, port: <a href='http://doc.rust-lang.org/nightly/std/primitive.u16.html'>u16</a>, public_key: <a class='struct' href='../../rstox/core/struct.PublicKey.html' title='rstox::core::PublicKey'>PublicKey</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>, <a class='enum' href='../../rstox/core/errors/enum.BootstrapError.html' title='rstox::core::errors::BootstrapError'>BootstrapError</a>&gt;</code></h4>
+<div class='docblock'><p>Sends a &quot;get nodes&quot; request to the given bootstrap node with IP, port, and
+public key to setup connections.</p>
+
+<p>This function will attempt to connect to the node using UDP and TCP at the
+same time.</p>
+
+<p>Tox will use the node as a TCP relay in case Tox_Options.udp_enabled was
+false, and also to connect to friends that are in TCP-only mode. Tox will
+also use the TCP connection when NAT hole punching is slow, and later switch
+to UDP if hole punching succeeds.</p>
+
+<h2 id="panics" class='section-header'><a
+                           href="#panics">Panics</a></h2>
+<p>Panics if <code>host</code> string contains <code>\0</code>.</p>
+</div><h4 id='method.get_connection_status' class='method'><code>fn <a href='#method.get_connection_status' class='fnname'>get_connection_status</a>(&amp;self) -&gt; <a class='enum' href='../../rstox/core/enum.Connection.html' title='rstox::core::Connection'>Connection</a></code></h4>
+<div class='docblock'><p>Get self connection status</p>
+</div><h4 id='method.get_address' class='method'><code>fn <a href='#method.get_address' class='fnname'>get_address</a>(&amp;self) -&gt; <a class='struct' href='../../rstox/core/struct.Address.html' title='rstox::core::Address'>Address</a></code></h4>
+<div class='docblock'><p>Get self tox address</p>
+</div><h4 id='method.get_nospam' class='method'><code>fn <a href='#method.get_nospam' class='fnname'>get_nospam</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.array.html'>[<a href='http://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>; 4]</a></code></h4>
+<div class='docblock'><p>Get self nospam</p>
+</div><h4 id='method.set_nospam' class='method'><code>fn <a href='#method.set_nospam' class='fnname'>set_nospam</a>(&amp;mut self, nospam: <a href='http://doc.rust-lang.org/nightly/std/primitive.array.html'>[<a href='http://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>; 4]</a>)</code></h4>
+<div class='docblock'><p>Set self nospam</p>
+</div><h4 id='method.get_public_key' class='method'><code>fn <a href='#method.get_public_key' class='fnname'>get_public_key</a>(&amp;self) -&gt; <a class='struct' href='../../rstox/core/struct.PublicKey.html' title='rstox::core::PublicKey'>PublicKey</a></code></h4>
+<div class='docblock'><p>Get self public key</p>
+</div><h4 id='method.set_name' class='method'><code>fn <a href='#method.set_name' class='fnname'>set_name</a>(&amp;mut self, name: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>, <a class='enum' href='../../rstox/core/errors/enum.SetInfoError.html' title='rstox::core::errors::SetInfoError'>SetInfoError</a>&gt;</code></h4>
+<div class='docblock'><p>Set the nickname for the Tox client</p>
+</div><h4 id='method.get_name' class='method'><code>fn <a href='#method.get_name' class='fnname'>get_name</a>(&amp;self) -&gt; <a class='struct' href='http://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h4>
+<div class='docblock'><p>Get self nickname</p>
+</div><h4 id='method.set_status_message' class='method'><code>fn <a href='#method.set_status_message' class='fnname'>set_status_message</a>(&amp;mut self, message: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>, <a class='enum' href='../../rstox/core/errors/enum.SetInfoError.html' title='rstox::core::errors::SetInfoError'>SetInfoError</a>&gt;</code></h4>
+<div class='docblock'><p>Set self status message</p>
+</div><h4 id='method.get_status_message' class='method'><code>fn <a href='#method.get_status_message' class='fnname'>get_status_message</a>(&amp;self) -&gt; <a class='struct' href='http://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h4>
+<div class='docblock'><p>Get self status message</p>
+</div><h4 id='method.set_status' class='method'><code>fn <a href='#method.set_status' class='fnname'>set_status</a>(&amp;mut self, status: <a class='enum' href='../../rstox/core/enum.UserStatus.html' title='rstox::core::UserStatus'>UserStatus</a>)</code></h4>
+<div class='docblock'><p>Set self status</p>
+</div><h4 id='method.get_status' class='method'><code>fn <a href='#method.get_status' class='fnname'>get_status</a>(&amp;self) -&gt; <a class='enum' href='../../rstox/core/enum.UserStatus.html' title='rstox::core::UserStatus'>UserStatus</a></code></h4>
+<div class='docblock'><p>Get self status</p>
+</div><h4 id='method.add_friend' class='method'><code>fn <a href='#method.add_friend' class='fnname'>add_friend</a>(&amp;mut self, address: &amp;<a class='struct' href='../../rstox/core/struct.Address.html' title='rstox::core::Address'>Address</a>, message: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>, <a class='enum' href='../../rstox/core/errors/enum.FriendAddError.html' title='rstox::core::errors::FriendAddError'>FriendAddError</a>&gt;</code></h4>
+<div class='docblock'><p>Add a friend to the friend list and send a friend request.</p>
+
+<p>A friend request message must be at least 1 byte long and at most
+<code>TOX_MAX_FRIEND_REQUEST_LENGTH</code>.</p>
+
+<p>Friend numbers are unique identifiers used in all functions that operate on
+friends. Once added, a friend number is stable for the lifetime of the Tox
+object. After saving the state and reloading it, the friend numbers may not
+be the same as before. Deleting a friend creates a gap in the friend number
+set, which is filled by the next adding of a friend. Any pattern in friend
+numbers should not be relied on.</p>
+</div><h4 id='method.add_friend_norequest' class='method'><code>fn <a href='#method.add_friend_norequest' class='fnname'>add_friend_norequest</a>(&amp;mut self, address: &amp;<a class='struct' href='../../rstox/core/struct.PublicKey.html' title='rstox::core::PublicKey'>PublicKey</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>, <a class='enum' href='../../rstox/core/errors/enum.FriendAddError.html' title='rstox::core::errors::FriendAddError'>FriendAddError</a>&gt;</code></h4>
+<div class='docblock'><p>Add a friend without sending a friend request.</p>
+
+<p>This function is used to add a friend in response to a friend request. If the
+client receives a friend request, it can be reasonably sure that the other
+client added this client as a friend, eliminating the need for a friend
+request.</p>
+
+<p>This function is also useful in a situation where both instances are
+controlled by the same entity, so that this entity can perform the mutual
+friend adding. In this case, there is no need for a friend request, either.</p>
+</div><h4 id='method.delete_friend' class='method'><code>fn <a href='#method.delete_friend' class='fnname'>delete_friend</a>(&amp;mut self, fnum: <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>, <a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
+<div class='docblock'><p>Remove a friend from the friend list.</p>
+
+<p>This does not notify the friend of their deletion. After calling this
+function, this client will appear offline to the friend and no communication
+can occur between the two.</p>
+</div><h4 id='method.friend_by_public_key' class='method'><code>fn <a href='#method.friend_by_public_key' class='fnname'>friend_by_public_key</a>(&amp;self, public_key: <a class='struct' href='../../rstox/core/struct.PublicKey.html' title='rstox::core::PublicKey'>PublicKey</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>&gt;</code></h4>
+<h4 id='method.friend_exists' class='method'><code>fn <a href='#method.friend_exists' class='fnname'>friend_exists</a>(&amp;self, fnum: <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+<h4 id='method.get_friend_list' class='method'><code>fn <a href='#method.get_friend_list' class='fnname'>get_friend_list</a>(&amp;self) -&gt; <a class='struct' href='http://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>&gt;</code></h4>
+<h4 id='method.get_friend_public_key' class='method'><code>fn <a href='#method.get_friend_public_key' class='fnname'>get_friend_public_key</a>(&amp;self, fnum: <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../../rstox/core/struct.PublicKey.html' title='rstox::core::PublicKey'>PublicKey</a>&gt;</code></h4>
+<h4 id='method.send_friend_message' class='method'><code>fn <a href='#method.send_friend_message' class='fnname'>send_friend_message</a>(&amp;mut self, fnum: <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>, kind: <a class='enum' href='../../rstox/core/enum.MessageType.html' title='rstox::core::MessageType'>MessageType</a>, message: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>, <a class='enum' href='../../rstox/core/errors/enum.FriendSendMessageError.html' title='rstox::core::errors::FriendSendMessageError'>FriendSendMessageError</a>&gt;</code></h4>
+<div class='docblock'><p>Send a text chat message to an online friend.</p>
+
+<p>This function creates a chat message packet and pushes it into the send
+queue.</p>
+
+<p>The message length may not exceed <code>TOX_MAX_MESSAGE_LENGTH</code>. Larger messages
+must be split by the client and sent as separate messages. Other clients can
+then reassemble the fragments. Messages may not be empty.</p>
+
+<p>The return value of this function is the message ID. If a read receipt is
+received, the triggered <code>friend_read_receipt</code> event will be passed this message ID.</p>
+
+<p>Message IDs are unique per friend. The first message ID is 0. Message IDs are
+incremented by 1 each time a message is sent. If <code>UINT32_MAX</code> messages were
+sent, the next message ID is 0.</p>
+</div><h4 id='method.add_groupchat' class='method'><code>fn <a href='#method.add_groupchat' class='fnname'>add_groupchat</a>(&amp;mut self) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>, <a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
+<h4 id='method.del_groupchat' class='method'><code>fn <a href='#method.del_groupchat' class='fnname'>del_groupchat</a>(&amp;mut self, groupnumber: <a href='http://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>, <a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
+<h4 id='method.group_peername' class='method'><code>fn <a href='#method.group_peername' class='fnname'>group_peername</a>(&amp;self, groupnumber: <a href='http://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>, peernumber: <a href='http://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='http://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;</code></h4>
+<h4 id='method.group_peer_pubkey' class='method'><code>fn <a href='#method.group_peer_pubkey' class='fnname'>group_peer_pubkey</a>(&amp;self, groupnumber: <a href='http://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>, peernumber: <a href='http://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../../rstox/core/struct.PublicKey.html' title='rstox::core::PublicKey'>PublicKey</a>&gt;</code></h4>
+<h4 id='method.invite_friend' class='method'><code>fn <a href='#method.invite_friend' class='fnname'>invite_friend</a>(&amp;mut self, friendnumber: <a href='http://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>, groupnumber: <a href='http://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>, <a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
+<h4 id='method.join_groupchat' class='method'><code>fn <a href='#method.join_groupchat' class='fnname'>join_groupchat</a>(&amp;mut self, friendnumber: <a href='http://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>, data: <a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a href='http://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>, <a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
+<h4 id='method.group_message_send' class='method'><code>fn <a href='#method.group_message_send' class='fnname'>group_message_send</a>(&amp;mut self, groupnumber: <a href='http://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>, msg: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>, <a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
+<h4 id='method.group_action_send' class='method'><code>fn <a href='#method.group_action_send' class='fnname'>group_action_send</a>(&amp;mut self, groupnumber: <a href='http://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>, act: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>, <a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
+<h4 id='method.group_number_peers' class='method'><code>fn <a href='#method.group_number_peers' class='fnname'>group_number_peers</a>(&amp;self, groupnumber: <a href='http://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>&gt;</code></h4>
+<h4 id='method.group_get_names' class='method'><code>fn <a href='#method.group_get_names' class='fnname'>group_get_names</a>(&amp;self, groupnumber: <a href='http://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='struct' href='http://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='http://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;&gt;, <a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
+<h4 id='method.group_get_title' class='method'><code>fn <a href='#method.group_get_title' class='fnname'>group_get_title</a>(&amp;self, groupnumber: <a href='http://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='http://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;</code></h4>
+<h4 id='method.group_set_title' class='method'><code>fn <a href='#method.group_set_title' class='fnname'>group_set_title</a>(&amp;mut self, groupnumber: <a href='http://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>, title: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>, <a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
+<h4 id='method.count_chatlist' class='method'><code>fn <a href='#method.count_chatlist' class='fnname'>count_chatlist</a>(&amp;self) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></h4>
+<h4 id='method.get_chatlist' class='method'><code>fn <a href='#method.get_chatlist' class='fnname'>get_chatlist</a>(&amp;self) -&gt; <a class='struct' href='http://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>&gt;</code></h4>
+<h4 id='method.group_get_type' class='method'><code>fn <a href='#method.group_get_type' class='fnname'>group_get_type</a>(&amp;self, groupnumber: <a href='http://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='enum' href='../../rstox/core/enum.GroupchatType.html' title='rstox::core::GroupchatType'>GroupchatType</a>&gt;</code></h4>
+<h4 id='method.save' class='method'><code>fn <a href='#method.save' class='fnname'>save</a>(&amp;self) -&gt; <a class='struct' href='http://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;</code></h4>
+<div class='docblock'><p>Get all all information associated with the tox instance as a <code>Vec&lt;u8&gt;</code></p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='http://doc.rust-lang.org/nightly/core/ops/trait.Drop.html' title='core::ops::Drop'>Drop</a> for <a class='struct' href='../../rstox/core/struct.Tox.html' title='rstox::core::Tox'>Tox</a></code></h3><div class='impl-items'><h4 id='method.drop' class='method'><code>fn <a href='http://doc.rust-lang.org/nightly/core/ops/trait.Drop.html#method.drop' class='fnname'>drop</a>(&amp;mut self)</code></h4>
+</div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <div id="help" class="hidden">
+        <div class="shortcuts">
+            <h1>Keyboard shortcuts</h1>
+            <dl>
+                <dt>?</dt>
+                <dd>Show this help dialog</dd>
+                <dt>S</dt>
+                <dd>Focus the search field</dd>
+                <dt>&larrb;</dt>
+                <dd>Move up in search results</dd>
+                <dt>&rarrb;</dt>
+                <dd>Move down in search results</dd>
+                <dt>&#9166;</dt>
+                <dd>Go to active search result</dd>
+            </dl>
+        </div>
+        <div class="infos">
+            <h1>Search tricks</h1>
+            <p>
+                Prefix searches with a type followed by a colon (e.g.
+                <code>fn:</code>) to restrict the search to a given type.
+            </p>
+            <p>
+                Accepted types are: <code>fn</code>, <code>mod</code>,
+                <code>struct</code>, <code>enum</code>,
+                <code>trait</code>, <code>typedef</code> (or
+                <code>tdef</code>).
+            </p>
+            <p>
+                Search functions by type signature (e.g.
+                <code>vec -> usize</code>)
+            </p>
+        </div>
+    </div>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "rstox";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    
+    <script async src="../../search-index.js"></script>
+</body>
+</html>
