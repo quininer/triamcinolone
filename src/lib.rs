@@ -30,11 +30,16 @@ use std::io::{Write, Read, Error};
 /// //im.eloop();
 /// ```
 pub struct Messager<'e> {
+    /// Tox Messager core
     pub core: Tox,
     //av: ToxAV,
+    /// Bootstrap config
     bootstrap: Table,
+    /// Bot config
     pub config: Table,
+    /// Bot owner public ey
     pub owner: PublicKey,
+    /// Events list
     events: HashMap<&'e str, Vec<Box<Fn(&Messager, Arguments)>>>
 }
 
@@ -110,12 +115,12 @@ impl<'e> Messager<'e> {
 /// # Examples
 ///
 /// ```
-/// let args = Arguments {
+/// let args = painting::Arguments {
 ///     message: Some("Hello world!".to_string()),
 ///     ..Default::default()
 /// };
 ///
-/// assert_eq(args.message, Some("Hello world!".to_string()));
+/// assert_eq!(args.message, Some("Hello world!".to_string()));
 /// ```
 #[derive(Clone)]
 pub struct Arguments {
@@ -155,6 +160,7 @@ impl Default for Arguments {
     }
 }
 
+/// Events loop
 pub trait Events<'e> {
     fn on(&mut self, event: &'e str, foo: Box<Fn(&Messager, Arguments)>);
     fn trigger(&self, event: &str, arguments: Arguments) -> Result<(), EventError>;
