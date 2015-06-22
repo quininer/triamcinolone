@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["EventError",""]],"struct":[["Arguments","Event arguments XXX use impl Clone for Arguments {}"],["Messager","Tox Messager."]],"trait":[["Events","Events loop"]]});
+initSidebarItems({"enum":[["EventError",""]],"struct":[["Arguments","Event arguments"],["Messager","Tox Messager."]],"trait":[["Events",""]]});

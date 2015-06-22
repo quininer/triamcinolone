@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["Events","Events loop"]]});
+initSidebarItems({"trait":[["Events",""]]});
