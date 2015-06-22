@@ -1,5 +1,3 @@
-#![feature(box_syntax)]
-
 use lib::{Messager, Events};
 use std::path::Path;
 
@@ -11,6 +9,9 @@ fn main() {
     im.save().err().and_then(|err| Some(println!("Save profile failure. {}", err)));
     println!("{}: {}", im.core.get_name(), im.core.get_address());
 
+    im.on("connection", Box::new(|tox, args| {
+        println!("[connection] {} ConnectionStatus: {:?}", tox.core.get_name(), args.status);
+    }));
 /*
  * WTF?
  * Why can not I borrow `&mut self`?
