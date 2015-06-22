@@ -11,46 +11,6 @@ use std::fs::File;
 use std::path::Path;
 use std::io::{Write, Read, Error};
 
-/// Event arguments
-/// XXX use impl Clone for Arguments {}
-#[derive(Clone)]
-pub struct Arguments {
-    ///  Connection Status
-    pub status: Option<Connection>,
-    ///  Friend num
-    pub fnum: Option<u32>,
-    ///  Message String
-    pub message: Option<String>,
-    ///  Public Key
-    pub pk: Option<PublicKey>,
-    ///  Data
-    pub data: Option<Vec<u8>>,
-    ///  Group peer num
-    pub peer: Option<i32>,
-    ///  Group num
-    pub groupnum: Option<i32>,
-    ///  Friend Group num
-    pub fgnum: Option<i32>,
-    ///  Group change
-    pub change: Option<ChatChange>
-}
-
-impl Default for Arguments {
-    fn default() -> Self {
-        Arguments {
-            status: None,
-            fnum: None,
-            message: None,
-            pk: None,
-            data: None,
-            peer: None,
-            groupnum: None,
-            fgnum: None,
-            change: None
-        }
-    }
-}
-
 /// Tox Messager.
 ///
 /// # Examples
@@ -73,7 +33,7 @@ pub struct Messager<'e> {
     pub core: Tox,
     //av: ToxAV,
     bootstrap: Table,
-    config: Table,
+    pub config: Table,
     pub owner: PublicKey,
     events: HashMap<&'e str, Vec<Box<Fn(&Messager, Arguments)>>>
 }
@@ -83,7 +43,7 @@ impl<'e> Messager<'e> {
     pub fn new(path: &Path) -> Self {
         // load toml config
         let mut data = String::new();
-        File::open(path).unwrap().read_to_string(&mut data).unwrap();
+        File::open(path).ok().expect("you need `config.toml`.").read_to_string(&mut data).unwrap();
         let xconfig = Parser::new(&data).parse().unwrap();
 
         // load Tox profile
@@ -140,10 +100,64 @@ impl<'e> Messager<'e> {
     }
 }
 
-/// Events loop
+// pub trait Operate {
+    // fn send();
+    // fn getnick();
+// }
+
+/// Event arguments
+///
+/// # Examples
+///
+/// ```
+/// let args = Arguments {
+///     message: Some("Hello world!".to_string()),
+///     ..Default::default()
+/// };
+///
+/// assert_eq(args.message, Some("Hello world!".to_string()));
+/// ```
+#[derive(Clone)]
+pub struct Arguments {
+    ///  Connection Status
+    pub status: Option<Connection>,
+    ///  Friend num
+    pub fnum: Option<u32>,
+    ///  Message String
+    pub message: Option<String>,
+    ///  Public Key
+    pub pk: Option<PublicKey>,
+    ///  Data
+    pub data: Option<Vec<u8>>,
+    ///  Group peer num
+    pub peer: Option<i32>,
+    ///  Group num
+    pub groupnum: Option<i32>,
+    ///  Friend Group num
+    pub fgnum: Option<i32>,
+    ///  Group change
+    pub change: Option<ChatChange>
+}
+
+impl Default for Arguments {
+    fn default() -> Self {
+        Arguments {
+            status: None,
+            fnum: None,
+            message: None,
+            pk: None,
+            data: None,
+            peer: None,
+            groupnum: None,
+            fgnum: None,
+            change: None
+        }
+    }
+}
+
 pub trait Events<'e> {
-    fn on(&mut self, event: &'e str, f: Box<Fn(&Messager, Arguments)>);
-    fn trigger(&mut self, event: &str, arguments: Arguments) -> Result<(), EventError>;
+    fn on(&mut self, event: &'e str, foo: Box<Fn(&Messager, Arguments)>);
+    fn trigger(&self, event: &str, arguments: Arguments) -> Result<(), EventError>;
     fn eloop(&mut self);
 }
 
@@ -159,7 +173,7 @@ impl<'e> Events<'e> for Messager<'e> {
     }
 
     /// Trigger event
-    fn trigger(&mut self, event: &str, arguments: Arguments) -> Result<(), EventError> {
+    fn trigger(&self, event: &str, arguments: Arguments) -> Result<(), EventError> {
         match self.events.get(event) {
             Some(l) => {
                 for foo in l {
@@ -181,14 +195,14 @@ impl<'e> Events<'e> for Messager<'e> {
                     ConnectionStatus(status) => {
                         self.trigger("connection", Arguments {
                             status: Some(status),
-                            ..Default::default()
+                            ..Arguments::default()
                         });
                     },
                     FriendRequest(pk, message) => {
                         self.trigger("friend.request", Arguments {
                             pk: Some(pk),
                             message: Some(message),
-                            ..Default::default()
+                            ..Arguments::default()
                         });
                     },
                     FriendMessage(fnum, kind, message) => {
@@ -198,21 +212,21 @@ impl<'e> Events<'e> for Messager<'e> {
                         }), Arguments {
                             fnum: Some(fnum),
                             message: Some(message),
-                            ..Default::default()
+                            ..Arguments::default()
                         });
                     },
                     LossyPackage(fnum, data) => {
                         self.trigger("package.lossy", Arguments {
                             fnum: Some(fnum),
                             data: Some(data),
-                            ..Default::default()
+                            ..Arguments::default()
                         });
                     },
                     LosslessPackage(fnum, data) => {
                         self.trigger("package.lossless", Arguments {
                             fnum: Some(fnum),
                             data: Some(data),
-                            ..Default::default()
+                            ..Arguments::default()
                         });
                     },
                     GroupInvite(peer, kind, data) => {
@@ -222,7 +236,7 @@ impl<'e> Events<'e> for Messager<'e> {
                         }), Arguments {
                             peer: Some(peer),
                             data: Some(data),
-                            ..Default::default()
+                            ..Arguments::default()
                         });
                     },
                     GroupMessage(groupnum, peer, message) => {
@@ -230,7 +244,7 @@ impl<'e> Events<'e> for Messager<'e> {
                             groupnum: Some(groupnum),
                             peer: Some(peer),
                             message: Some(message),
-                            ..Default::default()
+                            ..Arguments::default()
                         });
                     },
                     GroupTitle(groupnum, peer, message) => {
@@ -238,7 +252,7 @@ impl<'e> Events<'e> for Messager<'e> {
                             groupnum: Some(groupnum),
                             peer: Some(peer),
                             message: Some(message),
-                            ..Default::default()
+                            ..Arguments::default()
                         });
                     },
                     GroupNamelistChange(groupnum, peer, change) => {
@@ -246,7 +260,7 @@ impl<'e> Events<'e> for Messager<'e> {
                             groupnum: Some(groupnum),
                             peer: Some(peer),
                             change: Some(change),
-                            ..Default::default()
+                            ..Arguments::default()
                         });
                     },
                 }
@@ -256,7 +270,3 @@ impl<'e> Events<'e> for Messager<'e> {
         };
     }
 }
-
-// pub trait Operate {
-    // fn send();
-// }

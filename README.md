@@ -5,6 +5,12 @@ triamcinolone
 
 Tox bot, `rstox` based.
 
+Painting
+--------
+
+It is also a simple rstox packaging,
+`cargo doc` generated document can be seen [here](https://quininer.github.io/triamcinolone/painting/).
+
 TODO
 ----
 
