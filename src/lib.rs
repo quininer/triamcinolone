@@ -16,20 +16,22 @@ use std::io::{Write, Read, Error};
 /// # Examples
 ///
 /// ```
+/// use std::collections::HashMap;
 /// use std::path::Path;
-/// use painting::Events;
+/// use painting::{Messager, Events};
 ///
-/// let mut im = painting::Messager::new(Path::new("examples/config.toml"));
+/// let mut im = Messager::new(Path::new("examples/config.toml"));
+/// let mut events = HashMap::new();
 /// im.bootstrap().ok().expect("Bootstrap failure.");
 /// im.save().err().and_then(|err| Some(println!("Save profile failure. {}", err)));
 ///
-/// im.on("connection", Box::new(|tox, args| {
+/// events.on("connection", Box::new(|tox, args| {
 ///     println!("{} ConnectionStatus: {:?}", tox.core.get_name(), args.status);
 /// }));
 ///
-/// //im.eloop();
+/// //events.eloop(&mut im);
 /// ```
-pub struct Messager<'e> {
+pub struct Messager {
     /// Tox Messager core
     pub core: Tox,
     //av: ToxAV,
@@ -39,11 +41,9 @@ pub struct Messager<'e> {
     pub config: Table,
     /// Bot owner public ey
     pub owner: PublicKey,
-    /// Events list
-    events: HashMap<&'e str, Vec<Box<Fn(&Messager, Arguments)>>>
 }
 
-impl<'e> Messager<'e> {
+impl Messager {
     /// New a Messager
     pub fn new(path: &Path) -> Self {
         // load toml config
@@ -70,11 +70,10 @@ impl<'e> Messager<'e> {
 
         Messager {
             core: xcore,
-            bootstrap: xconfig.get("bootstrap").unwrap().as_table().unwrap().clone(),
-            config: xconfig.get("bot").unwrap().as_table().unwrap().clone(),
+            bootstrap: xconfig.get("bootstrap").expect("missing bootstrapd config.").as_table().unwrap().clone(),
+            config: xconfig.get("bot").expect("minssing bot config.").as_table().unwrap().clone(),
             owner: xconfig.get("bot").unwrap().as_table().unwrap()
-                .get("owner").unwrap().as_str().unwrap().parse().unwrap(),
-            events: HashMap::new()
+                .get("owner").unwrap().as_str().unwrap().parse().unwrap()
         }
     }
 
@@ -107,7 +106,7 @@ impl<'e> Messager<'e> {
 
 // pub trait Operate {
     // fn send();
-    // fn getnick();
+    // fn get_nick();
 // }
 
 /// Event arguments
@@ -162,28 +161,28 @@ impl Default for Arguments {
 
 /// Events loop
 pub trait Events<'e> {
-    fn on(&mut self, event: &'e str, foo: Box<Fn(&Messager, Arguments)>);
-    fn trigger(&self, event: &str, arguments: Arguments) -> Result<(), EventError>;
-    fn eloop(&mut self);
+    fn on(&mut self, event: &'e str, foo: Box<Fn(&mut Messager, Arguments)>);
+    fn trigger(&mut self, im: &mut Messager, event: &str, arguments: Arguments) -> Result<(), EventError>;
+    fn eloop(&mut self, im: &mut Messager);
 }
 
 pub enum EventError {
     NotFoundEvent
 }
 
-impl<'e> Events<'e> for Messager<'e> {
+impl<'e> Events<'e> for HashMap<&'e str, Vec<Box<Fn(&mut Messager, Arguments)>>> {
     /// Register event
-    fn on(&mut self, event: &'e str, foo: Box<Fn(&Messager, Arguments)>) {
-        let mut l = self.events.entry(event).or_insert(Vec::new());
+    fn on(&mut self, event: &'e str, foo: Box<Fn(&mut Messager, Arguments)>) {
+        let mut l = self.entry(event).or_insert(Vec::new());
         l.push(foo);
     }
 
     /// Trigger event
-    fn trigger(&self, event: &str, arguments: Arguments) -> Result<(), EventError> {
-        match self.events.get(event) {
+    fn trigger(&mut self, im: &mut Messager, event: &str, arguments: Arguments) -> Result<(), EventError> {
+        match self.get(event) {
             Some(l) => {
                 for foo in l {
-                    foo(self, arguments.clone());
+                    foo(im, arguments.clone());
                 };
                 Ok(())
             },
@@ -193,26 +192,26 @@ impl<'e> Events<'e> for Messager<'e> {
 
     /// Start events loop
     #[allow(unused_must_use)]
-    fn eloop(&mut self) {
+    fn eloop(&mut self, im: &mut Messager) {
         loop {
-            for ev in self.core.iter() {
+            for ev in im.core.iter() {
                 println!("Event {:?}", ev);
                 match ev {
                     ConnectionStatus(status) => {
-                        self.trigger("connection", Arguments {
+                        self.trigger(im, "connection", Arguments {
                             status: Some(status),
                             ..Arguments::default()
                         });
                     },
                     FriendRequest(pk, message) => {
-                        self.trigger("friend.request", Arguments {
+                        self.trigger(im, "friend.request", Arguments {
                             pk: Some(pk),
                             message: Some(message),
                             ..Arguments::default()
                         });
                     },
                     FriendMessage(fnum, kind, message) => {
-                        self.trigger(&format!("friend.{}", match kind {
+                        self.trigger(im, &format!("friend.{}", match kind {
                             MessageType::Normal => "message",
                             MessageType::Action => "action"
                         }), Arguments {
@@ -222,21 +221,21 @@ impl<'e> Events<'e> for Messager<'e> {
                         });
                     },
                     LossyPackage(fnum, data) => {
-                        self.trigger("package.lossy", Arguments {
+                        self.trigger(im, "package.lossy", Arguments {
                             fnum: Some(fnum),
                             data: Some(data),
                             ..Arguments::default()
                         });
                     },
                     LosslessPackage(fnum, data) => {
-                        self.trigger("package.lossless", Arguments {
+                        self.trigger(im, "package.lossless", Arguments {
                             fnum: Some(fnum),
                             data: Some(data),
                             ..Arguments::default()
                         });
                     },
                     GroupInvite(peer, kind, data) => {
-                        self.trigger(&format!("group.invite.{}", match kind {
+                        self.trigger(im, &format!("group.invite.{}", match kind {
                             GroupchatType::Text => "text",
                             GroupchatType::Av => "av"
                         }), Arguments {
@@ -246,7 +245,7 @@ impl<'e> Events<'e> for Messager<'e> {
                         });
                     },
                     GroupMessage(groupnum, peer, message) => {
-                        self.trigger("group.message", Arguments {
+                        self.trigger(im, "group.message", Arguments {
                             groupnum: Some(groupnum),
                             peer: Some(peer),
                             message: Some(message),
@@ -254,7 +253,7 @@ impl<'e> Events<'e> for Messager<'e> {
                         });
                     },
                     GroupTitle(groupnum, peer, message) => {
-                        self.trigger("group.title", Arguments {
+                        self.trigger(im, "group.title", Arguments {
                             groupnum: Some(groupnum),
                             peer: Some(peer),
                             message: Some(message),
@@ -262,7 +261,7 @@ impl<'e> Events<'e> for Messager<'e> {
                         });
                     },
                     GroupNamelistChange(groupnum, peer, change) => {
-                        self.trigger("group.change", Arguments {
+                        self.trigger(im, "group.change", Arguments {
                             groupnum: Some(groupnum),
                             peer: Some(peer),
                             change: Some(change),
@@ -272,7 +271,7 @@ impl<'e> Events<'e> for Messager<'e> {
                 }
             };
 
-            self.core.wait();
+            im.core.wait();
         };
     }
 }

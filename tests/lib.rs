@@ -3,6 +3,7 @@
 
 extern crate painting;
 
+use std::collections::HashMap;
 use painting::{Messager, Events, Arguments};
 use std::path::Path;
 
@@ -20,16 +21,18 @@ fn test_event() {
     let mut im = Messager::new(Path::new("examples/config.toml"));
     im.bootstrap().ok().expect("bootstrap failure.");
 
-    im.on("test", Box::new(|tox, args| {
+    let mut events = HashMap::new();
+
+    events.on("test", Box::new(|tox, args| {
         assert_eq!(args.message, Some("Hello world.".to_string()));
         assert_eq!(tox.core.get_name(), "triam");
     }));
 
-    assert!(im.trigger("test", Arguments {
+    assert!(events.trigger(&mut im, "test", Arguments {
         message: Some("Hello world.".to_string()),
         ..Default::default()
     }).is_ok());
-    assert!(im.trigger("not", Arguments {
+    assert!(events.trigger(&mut im, "not", Arguments {
         message: Some("Event binding.".to_string()),
         ..Default::default()
     }).is_err());
