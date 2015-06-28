@@ -104,10 +104,86 @@ impl Messager {
     }
 }
 
-// pub trait Operate {
-    // fn send();
-    // fn get_nick();
-// }
+/// Messager Operate
+pub trait Operate {
+    fn group(&mut self, groupnum: Option<i32>) -> GroupMessager;
+    fn join(&mut self, grouptype: GroupchatType, peer: Option<i32>, data: Option<Vec<u8>>) -> Result<GroupMessager, ()>;
+    fn send(&mut self, target: Option<u32>, kind: MessageType, message: String) -> Result<u32, errors::FriendSendMessageError>;
+    fn get_nick(&self, target: Option<u32>) -> Option<String>;
+}
+
+impl Operate for Messager {
+    fn group(&mut self, groupnum: Option<i32>) -> GroupMessager {
+        GroupMessager {
+            grouptype: (*self).core.group_get_type(groupnum.expect("Group num Error.")).expect("Group type Error."),
+            messager: self,
+            group: groupnum.unwrap()
+        }
+    }
+    fn join(&mut self, grouptype: GroupchatType, peer: Option<i32>, data: Option<Vec<u8>>) -> Result<GroupMessager, ()> {
+        if peer == None || data == None {
+            return match self.core.add_groupchat() {
+                Ok(groupnum) => Ok(self.group(Some(groupnum))),
+                Err(_) => Err(())
+            }
+        };
+        match grouptype {
+            GroupchatType::Text => {
+                match self.core.join_groupchat(peer.unwrap(), &data.unwrap()) {
+                    Ok(groupnum) => Ok(self.group(Some(groupnum))),
+                    Err(_) => Err(())
+                }
+            },
+            // GroupchatType::Av => self.av.join_groupchat(peer, data)
+            GroupchatType::Av => Err(())
+        }
+    }
+    fn send(&mut self, target: Option<u32>, kind: MessageType, message: String) -> Result<u32, errors::FriendSendMessageError> {
+        match target {
+            Some(fnum) => self.core.send_friend_message(fnum, kind, &message),
+            None => Err(errors::FriendSendMessageError::NotFound)
+        }
+    }
+    fn get_nick(&self, target: Option<u32>) -> Option<String> {
+        match target {
+            // FIXME TODO rstox 没有封装 get_friend_name
+            Some(fnum) => None,
+            None => Some(self.core.get_name())
+        }
+    }
+}
+
+/// Group Messager
+pub struct GroupMessager<'g> {
+    grouptype: GroupchatType,
+    messager: &'g mut Messager,
+    group: i32
+}
+
+/// Group Messager Operate
+pub trait GroupOperate {
+    fn send(&mut self, target: Option<i32>, kind: MessageType, message: String) -> Result<(), ()>;
+    fn get_nick(&self, target: Option<i32>) -> Option<String>;
+}
+
+impl<'g> GroupOperate for GroupMessager<'g> {
+    fn send(&mut self, target: Option<i32>, kind: MessageType, message: String) -> Result<(), ()> {
+        let message = match target {
+            Some(peer) => format!("{}: {}", self.get_nick(Some(peer)).unwrap_or(String::new()), message),
+            None => message
+        };
+        match kind {
+            MessageType::Normal => self.messager.core.group_message_send(self.group, &message),
+            MessageType::Action => self.messager.core.group_action_send(self.group, &message)
+        }
+    }
+    fn get_nick(&self, target: Option<i32>) -> Option<String> {
+        match target {
+            Some(peer) => self.messager.core.group_peername(self.group, peer),
+            None => None
+        }
+    }
+}
 
 /// Event arguments
 ///

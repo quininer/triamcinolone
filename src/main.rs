@@ -1,6 +1,9 @@
+extern crate rstox;
+
 use std::collections::HashMap;
-use lib::{Messager, Events};
+use lib::{Messager, Events, Operate, GroupOperate};
 use std::path::Path;
+use rstox::core::*;
 
 mod lib;
 
@@ -17,13 +20,18 @@ fn main() {
 
     events.on("friend.request", Box::new(|tox, args| {
         tox.core.add_friend_norequest(&args.pk.unwrap()).unwrap();
+        tox.save().err().and_then(|err| Some(println!("Save profile failure. {}", err)));
     }));
     events.on("group.invite.text", Box::new(|tox, args| {
-        tox.core.join_groupchat(args.peer.unwrap(), &args.data.unwrap()).unwrap();
+        tox.join(GroupchatType::Text, args.peer, args.data).err().and_then(|err| {
+            Some(println!("Join Group Error. {:?}", err))
+        });
     }));
     events.on("group.message", Box::new(|tox, args| {
-        if tox.core.group_peername(args.groupnum.unwrap(), args.peer.unwrap()).unwrap() != tox.core.get_name() {
-            tox.core.group_message_send(args.groupnum.unwrap(), &args.message.unwrap()).unwrap();
+        if tox.group(args.groupnum).get_nick(args.peer) != tox.get_nick(None) {
+            tox.group(args.groupnum).send(None, MessageType::Normal, args.message.unwrap_or(String::new())).err().and_then(|err| {
+                Some(println!("Group Message Send Error. {:?}", err))
+            });
         };
     }));
 
