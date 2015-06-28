@@ -71,37 +71,53 @@
 <span id="29">29</span>
 <span id="30">30</span>
 <span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
 </pre><pre class='rust '>
-<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>box_syntax</span>)]</span>
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>rstox</span>;
 
-<span class='kw'>use</span> <span class='ident'>lib</span>::{<span class='ident'>Messager</span>, <span class='ident'>Events</span>};
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>collections</span>::<span class='ident'>HashMap</span>;
+<span class='kw'>use</span> <span class='ident'>lib</span>::{<span class='ident'>Messager</span>, <span class='ident'>Events</span>, <span class='ident'>Operate</span>, <span class='ident'>GroupOperate</span>};
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>path</span>::<span class='ident'>Path</span>;
+<span class='kw'>use</span> <span class='ident'>rstox</span>::<span class='ident'>core</span>::<span class='op'>*</span>;
 
 <span class='kw'>mod</span> <span class='ident'>lib</span>;
 
 <span class='kw'>fn</span> <span class='ident'>main</span>() {
     <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>im</span> <span class='op'>=</span> <span class='ident'>Messager</span>::<span class='ident'>new</span>(<span class='ident'>Path</span>::<span class='ident'>new</span>(<span class='string'>&quot;./config.toml&quot;</span>));
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>events</span> <span class='op'>=</span> <span class='ident'>HashMap</span>::<span class='ident'>new</span>();
     <span class='ident'>im</span>.<span class='ident'>bootstrap</span>().<span class='ident'>ok</span>().<span class='ident'>expect</span>(<span class='string'>&quot;Bootstrap failure.&quot;</span>);
     <span class='ident'>im</span>.<span class='ident'>save</span>().<span class='ident'>err</span>().<span class='ident'>and_then</span>(<span class='op'>|</span><span class='ident'>err</span><span class='op'>|</span> <span class='prelude-val'>Some</span>(<span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Save profile failure. {}&quot;</span>, <span class='ident'>err</span>)));
     <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{}: {}&quot;</span>, <span class='ident'>im</span>.<span class='ident'>core</span>.<span class='ident'>get_name</span>(), <span class='ident'>im</span>.<span class='ident'>core</span>.<span class='ident'>get_address</span>());
 
-<span class='comment'>/*
- * WTF?
- * Why can not I borrow `&amp;mut self`?
-    im.on(&quot;friend.request&quot;, box |tox, args| {
-        tox.core.add_friend_norequest(&amp;args.pk.unwrap()).unwrap();
-    });
-    im.on(&quot;group.invite.text&quot;, box |tox, args| {
-        tox.core.join_groupchat(args.peer.unwrap(), &amp;args.data.unwrap()).unwrap();
-    });
-    im.on(&quot;group.message&quot;, box |tox, args| {
-        if tox.core.group_peername(args.groupnum.unwrap(), args.peer.unwrap()).unwrap() != tox.core.get_name() {
-            tox.core.group_message_send(args.groupnum.unwrap(), &amp;args.message.unwrap()).unwrap();
-        };
-    });
-*/</span>
+    <span class='ident'>events</span>.<span class='ident'>on</span>(<span class='string'>&quot;connection&quot;</span>, <span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='op'>|</span><span class='ident'>tox</span>, <span class='ident'>args</span><span class='op'>|</span> {
+        <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;[connection] {} ConnectionStatus: {:?}&quot;</span>, <span class='ident'>tox</span>.<span class='ident'>core</span>.<span class='ident'>get_name</span>(), <span class='ident'>args</span>.<span class='ident'>status</span>);
+    }));
 
-    <span class='ident'>im</span>.<span class='ident'>eloop</span>();
+    <span class='ident'>events</span>.<span class='ident'>on</span>(<span class='string'>&quot;friend.request&quot;</span>, <span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='op'>|</span><span class='ident'>tox</span>, <span class='ident'>args</span><span class='op'>|</span> {
+        <span class='ident'>tox</span>.<span class='ident'>core</span>.<span class='ident'>add_friend_norequest</span>(<span class='kw-2'>&amp;</span><span class='ident'>args</span>.<span class='ident'>pk</span>.<span class='ident'>unwrap</span>()).<span class='ident'>unwrap</span>();
+        <span class='ident'>tox</span>.<span class='ident'>save</span>().<span class='ident'>err</span>().<span class='ident'>and_then</span>(<span class='op'>|</span><span class='ident'>err</span><span class='op'>|</span> <span class='prelude-val'>Some</span>(<span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Save profile failure. {}&quot;</span>, <span class='ident'>err</span>)));
+    }));
+    <span class='ident'>events</span>.<span class='ident'>on</span>(<span class='string'>&quot;group.invite.text&quot;</span>, <span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='op'>|</span><span class='ident'>tox</span>, <span class='ident'>args</span><span class='op'>|</span> {
+        <span class='ident'>tox</span>.<span class='ident'>join</span>(<span class='ident'>GroupchatType</span>::<span class='ident'>Text</span>, <span class='ident'>args</span>.<span class='ident'>peer</span>, <span class='ident'>args</span>.<span class='ident'>data</span>).<span class='ident'>err</span>().<span class='ident'>and_then</span>(<span class='op'>|</span><span class='ident'>err</span><span class='op'>|</span> {
+            <span class='prelude-val'>Some</span>(<span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Join Group Error. {:?}&quot;</span>, <span class='ident'>err</span>))
+        });
+    }));
+    <span class='ident'>events</span>.<span class='ident'>on</span>(<span class='string'>&quot;group.message&quot;</span>, <span class='ident'>Box</span>::<span class='ident'>new</span>(<span class='op'>|</span><span class='ident'>tox</span>, <span class='ident'>args</span><span class='op'>|</span> {
+        <span class='kw'>if</span> <span class='ident'>tox</span>.<span class='ident'>group</span>(<span class='ident'>args</span>.<span class='ident'>groupnum</span>).<span class='ident'>get_nick</span>(<span class='ident'>args</span>.<span class='ident'>peer</span>) <span class='op'>!=</span> <span class='ident'>tox</span>.<span class='ident'>get_nick</span>(<span class='prelude-val'>None</span>) {
+            <span class='ident'>tox</span>.<span class='ident'>group</span>(<span class='ident'>args</span>.<span class='ident'>groupnum</span>).<span class='ident'>send</span>(<span class='prelude-val'>None</span>, <span class='ident'>MessageType</span>::<span class='ident'>Normal</span>, <span class='ident'>args</span>.<span class='ident'>message</span>.<span class='ident'>unwrap_or</span>(<span class='ident'>String</span>::<span class='ident'>new</span>())).<span class='ident'>err</span>().<span class='ident'>and_then</span>(<span class='op'>|</span><span class='ident'>err</span><span class='op'>|</span> {
+                <span class='prelude-val'>Some</span>(<span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Group Message Send Error. {:?}&quot;</span>, <span class='ident'>err</span>))
+            });
+        };
+    }));
+
+    <span class='ident'>events</span>.<span class='ident'>eloop</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>im</span>);
 }
 </pre>
 </section>

@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["Events",""]]});
+initSidebarItems({"trait":[["Events","Events loop"],["GroupOperate","Group Messager Operate"],["Operate","Messager Operate"]]});
