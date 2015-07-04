@@ -9,7 +9,6 @@ path = "src/lib.rs"
 
 [dependencies.rstox]
 git = "https://github.com/suhr/rstox.git"
-branch = "new-api"
 # path = "../rstox"
 
 [dependencies]

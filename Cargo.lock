@@ -2,8 +2,8 @@
 name = "triamcinolone"
 version = "0.1.0"
 dependencies = [
- "rstox 0.0.1 (git+https://github.com/suhr/rstox.git?branch=new-api)",
- "toml 0.1.20 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rstox 0.0.1 (git+https://github.com/suhr/rstox.git)",
+ "toml 0.1.21 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -14,7 +14,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "rstox"
 version = "0.0.1"
-source = "git+https://github.com/suhr/rstox.git?branch=new-api#bb635d71855c18247d5e9c43a07e8c52b89f6e7b"
+source = "git+https://github.com/suhr/rstox.git#063bcf97c7a0ef04ad97347147d19573da7f8163"
 dependencies = [
  "libc 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -26,7 +26,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "toml"
-version = "0.1.20"
+version = "0.1.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "rustc-serialize 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",

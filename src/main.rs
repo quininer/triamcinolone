@@ -27,12 +27,11 @@ fn main() {
             Some(println!("Join Group Error. {:?}", err))
         });
     }));
-    events.on("group.message", Box::new(|tox, args| {
-        if tox.group(args.groupnum).get_nick(args.peer) != tox.get_nick(None) {
-            tox.group(args.groupnum).send(None, MessageType::Normal, args.message.unwrap_or(String::new())).err().and_then(|err| {
-                Some(println!("Group Message Send Error. {:?}", err))
-            });
-        };
+
+    events.on("group.message.command", Box::new(|tox, args| {
+        tox.group(args.groupnum).send(None, MessageType::Normal, args.message.unwrap_or(String::new())).err().and_then(|err| {
+            Some(println!("Group Message Send Error. {:?}", err))
+        });
     }));
 
     events.eloop(&mut im);

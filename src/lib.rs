@@ -322,11 +322,28 @@ impl<'e> Events<'e> for HashMap<&'e str, Vec<Box<Fn(&mut Messager, Arguments)>>>
                     },
                     GroupMessage(groupnum, peer, message) => {
                         self.trigger(im, "group.message", Arguments {
-                            groupnum: Some(groupnum),
-                            peer: Some(peer),
-                            message: Some(message),
+                            groupnum: Some(groupnum.clone()),
+                            peer: Some(peer.clone()),
+                            message: Some(message.clone()),
                             ..Arguments::default()
                         });
+                        if im.group(Some(groupnum)).get_nick(Some(peer)) != im.get_nick(None) {
+                            self.trigger(im, "group.message.notme", Arguments {
+                                groupnum: Some(groupnum.clone()),
+                                peer: Some(peer.clone()),
+                                message: Some(message.clone()),
+                                ..Arguments::default()
+                            });
+                            if message.starts_with(&im.get_nick(None).unwrap()) {
+                                println!("true");
+                                self.trigger(im, "group.message.command", Arguments {
+                                    groupnum: Some(groupnum.clone()),
+                                    peer: Some(peer.clone()),
+                                    message: Some(message.clone()),
+                                    ..Arguments::default()
+                                });
+                            };
+                        };
                     },
                     GroupTitle(groupnum, peer, message) => {
                         self.trigger(im, "group.title", Arguments {
