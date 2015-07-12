@@ -8,15 +8,15 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.1.8"
+version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "rstox"
 version = "0.0.1"
-source = "git+https://github.com/suhr/rstox.git#063bcf97c7a0ef04ad97347147d19573da7f8163"
+source = "git+https://github.com/suhr/rstox.git#e27e94a3bc57dc3d7c7543d2b0320c941baa991e"
 dependencies = [
- "libc 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

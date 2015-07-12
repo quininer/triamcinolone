@@ -164,6 +164,8 @@ pub struct GroupMessager<'g> {
 pub trait GroupOperate {
     fn send(&mut self, target: Option<i32>, kind: MessageType, message: String) -> Result<(), ()>;
     fn get_nick(&self, target: Option<i32>) -> Option<String>;
+    fn get_title(&self) -> Option<String>;
+    fn set_title(&mut self, title: &str) -> Result<(), ()>;
 }
 
 impl<'g> GroupOperate for GroupMessager<'g> {
@@ -182,6 +184,12 @@ impl<'g> GroupOperate for GroupMessager<'g> {
             Some(peer) => self.messager.core.group_peername(self.group, peer),
             None => None
         }
+    }
+    fn get_title(&self) -> Option<String> {
+        self.messager.core.group_get_title(self.group)
+    }
+    fn set_title(&mut self, title: &str) -> Result<(), ()> {
+        self.messager.core.group_set_title(self.group, title)
     }
 }
 
@@ -286,6 +294,38 @@ impl<'e> Events<'e> for HashMap<&'e str, Vec<Box<Fn(&mut Messager, Arguments)>>>
                             ..Arguments::default()
                         });
                     },
+                    FriendName(fnum, name) => {
+                        self.trigger(im, "friend.name", Arguments {
+                            fnum: Some(fnum),
+                            message: Some(name),
+                            ..Arguments::default()
+                        });
+                    },
+                    FriendStatusMessage(fnum, message) => {
+                        self.trigger(im, "friend.status.message", Arguments {
+                            fnum: Some(fnum),
+                            message: Some(message),
+                            ..Arguments::default()
+                        });
+                    },
+                    FriendStatus(fnum, status) => {
+                        self.trigger(im, "friend.status.change", Arguments {
+                            fnum: Some(fnum),
+                            message: Some(match status {
+                                UserStatus::None => "online".to_string(),
+                                UserStatus::Away => "away".to_string(),
+                                UserStatus::Busy => "busy".to_string()
+                            }),
+                            ..Arguments::default()
+                        });
+                    },
+                    FriendConnectionStatus(fnum, status) => {
+                        self.trigger(im, "friend.status.contention", Arguments {
+                            fnum: Some(fnum),
+                            status: Some(status),
+                            ..Arguments::default()
+                        });
+                    },
                     FriendMessage(fnum, kind, message) => {
                         self.trigger(im, &format!("friend.{}", match kind {
                             MessageType::Normal => "message",
@@ -361,6 +401,7 @@ impl<'e> Events<'e> for HashMap<&'e str, Vec<Box<Fn(&mut Messager, Arguments)>>>
                             ..Arguments::default()
                         });
                     },
+                    _ => ()
                 }
             };
 
