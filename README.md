@@ -1,3 +1,8 @@
+DEAD
+====
+
+I realized that I could not control Rust, the project may be rewritten or discarded.
+
 triamcinolone
 =============
 
